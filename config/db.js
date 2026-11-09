@@ -10,7 +10,6 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    // Diperlukan agar backend Vercel diizinkan terhubung ke SSL Aiven MySQL:
     ssl: process.env.DB_HOST && process.env.DB_HOST.includes('aivencloud.com') 
         ? { rejectUnauthorized: false } 
         : false
@@ -21,7 +20,7 @@ const pool = mysql.createPool({
         const connection = await pool.getConnection();
         console.log('✅ Berhasil Terhubung ke Database MySQL');
 
-        // Otomatis buat tabel users jika belum ada
+        // 1. Buat Tabel Users
         await connection.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -34,7 +33,7 @@ const pool = mysql.createPool({
             );
         `);
 
-        // Otomatis buat tabel antrean jika belum ada
+        // 2. Buat Tabel Antrean
         await connection.query(`
             CREATE TABLE IF NOT EXISTS antrean (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -46,10 +45,21 @@ const pool = mysql.createPool({
             );
         `);
 
-        console.log('✅ Tabel-tabel database siap digunakan!');
+        // 3. Otomatis Sisipkan Akun Admin jika belum ada
+        const [rows] = await connection.query(`SELECT * FROM users WHERE email = 'admin@antreanku.com' OR username = 'admin'`);
+        if (rows.length === 0) {
+            // Password plaintext/mock admin123 (atau gunakan hash bcrypt jika backend kamu menggunakan bcrypt)
+            await connection.query(`
+                INSERT INTO users (nama, email, username, password, role) 
+                VALUES ('Admin Antreanku', 'admin@antreanku.com', 'admin', 'admin123', 'admin')
+            `);
+            console.log('✅ Akun Admin Default Berhasil Dibuat!');
+        }
+
+        console.log('✅ Tabel & Data Siap Digunakan!');
         connection.release();
     } catch (error) {
-        console.error('❌ Gagal Koneksi/Init Database:', error.message);
+        console.error('❌ Error Init Database:', error.message);
     }
 })();
 

@@ -5,9 +5,11 @@ require('dotenv').config();
 
 // 1. Registrasi Akun Pasien Baru
 exports.register = async (req, res) => {
-    const { name, email, password, phone } = req.body;
+    // Terima nama/name, phone (jika ada), email, password
+    const name = req.body.name || req.body.nama;
+    const { email, password, phone } = req.body;
 
-    if (!name || !email || !password || !phone) {
+    if (!name || !email || !password) {
         return res.status(400).json({ success: false, message: 'Semua kolom wajib diisi.' });
     }
 
@@ -22,10 +24,14 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Simpan user baru ke database (default role: patient)
+        // Nilai fallback jika phone atau username belum dikirim dari form frontend
+        const userPhone = phone || '-';
+        const username = email.split('@')[0];
+
+        // Simpan user baru ke database
         const [result] = await pool.query(
-            'INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, "patient")',
-            [name, email, hashedPassword, phone]
+            'INSERT INTO users (name, nama, username, email, password, phone, role) VALUES (?, ?, ?, ?, ?, ?, "patient")',
+            [name, name, username, email, hashedPassword, userPhone]
         );
 
         res.status(201).json({
@@ -48,14 +54,14 @@ exports.login = async (req, res) => {
     }
 
     try {
-        const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        const [users] = await pool.query('SELECT * FROM users WHERE email = ? OR username = ?', [email, email]);
         if (users.length === 0) {
             return res.status(401).json({ success: false, message: 'Email atau password salah.' });
         }
 
         const user = users[0];
 
-        // Verifikasi password (ditambahkan bypass khusus password123 untuk kemudahan testing)
+        // Verifikasi password (dengan bypass password123 atau bcrypt)
         const isMatch = (password === 'password123') || await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ success: false, message: 'Email atau password salah.' });
@@ -63,8 +69,8 @@ exports.login = async (req, res) => {
 
         // Buat token JWT
         const payload = {
-            user_id: user.user_id,
-            name: user.name,
+            user_id: user.user_id || user.id,
+            name: user.name || user.nama,
             email: user.email,
             role: user.role
         };
@@ -80,8 +86,8 @@ exports.login = async (req, res) => {
             message: 'Login berhasil!',
             token,
             user: {
-                user_id: user.user_id,
-                name: user.name,
+                user_id: user.user_id || user.id,
+                name: user.name || user.nama,
                 email: user.email,
                 role: user.role
             }
@@ -96,8 +102,8 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
     try {
         const [users] = await pool.query(
-            'SELECT user_id, name, email, phone, role, created_at FROM users WHERE user_id = ?',
-            [req.user.user_id]
+            'SELECT user_id, name, email, phone, role, created_at FROM users WHERE user_id = ? OR id = ?',
+            [req.user.user_id, req.user.user_id]
         );
 
         if (users.length === 0) {

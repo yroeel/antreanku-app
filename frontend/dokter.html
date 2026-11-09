@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Dokter - Antreanku</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- 1. Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-info">
+            <span id="topBarTitle"><i class="fa-solid fa-clinic-medical"></i> Puskesmas / Klinik Utama Antreanku</span>
+            <span><i class="fa-solid fa-clock"></i> Jam Pelayanan: 08.00 - 14.00 WIB</span>
+        </div>
+    </div>
+
+    <!-- 2. Navbar Dinamis (Menyesuaikan Admin / User) -->
+    <nav class="navbar-rs">
+        <a href="index.html" class="brand-rs">
+            <div class="brand-logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+            <div>
+                <div class="brand-text-title" id="brandTitle">Antreanku</div>
+                <div class="brand-text-sub" id="brandSub">Informasi Jadwal Dokter</div>
+            </div>
+        </a>
+
+        <div class="nav-rs-links" id="navLinks">
+            <!-- Navigasi akan diisi secara otomatis oleh JavaScript berdasarkan Role -->
+        </div>
+    </nav>
+
+    <!-- 3. Banner / Header Page -->
+    <div class="hero-banner">
+        <div class="container">
+            <small style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-weight: 600;">JADWAL PRAKTEK DOKTER</small>
+            <h1 style="margin-top: 10px;" id="pageTitle">Daftar Tim Medis & Spesialis</h1>
+            <p style="opacity: 0.9; margin-top: 4px; font-size: 0.95rem;">Jadwal pelayanan dokter klinik yang bersiap melayani Anda.</p>
+        </div>
+    </div>
+
+    <!-- 4. Konten Utama: Daftar Dokter (Grid) -->
+    <div class="container" style="margin-top: -2.5rem; margin-bottom: 3rem;">
+        
+        <!-- Tombol Tambah Dokter khusus Admin -->
+        <div id="adminActionHeader" style="display: none; margin-bottom: 1.5rem; justify-content: flex-end;">
+            <a href="index.html" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Tambah Dokter & Jadwal Baru
+            </a>
+        </div>
+
+        <div class="grid-dokter" id="doctorContainer">
+            <p style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #64748b;">Memuat data jadwal dokter dari database...</p>
+        </div>
+    </div>
+
+    <!-- Script Integrasi API & Logic Peran (Role Check) -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Cek Data User dari localStorage
+            const userJson = localStorage.getItem('user');
+            const currentUser = userJson ? JSON.parse(userJson) : null;
+            const isAdmin = currentUser && currentUser.role === 'admin';
+
+            // 1. Rendernavbar sesuai Role Admin / Patient
+            const navLinks = document.getElementById('navLinks');
+            const brandTitle = document.getElementById('brandTitle');
+            const brandSub = document.getElementById('brandSub');
+            const adminActionHeader = document.getElementById('adminActionHeader');
+
+            if (isAdmin) {
+                brandTitle.innerText = "Antreanku Admin";
+                brandSub.innerText = "Panel Dokter";
+                adminActionHeader.style.display = 'flex';
+
+                navLinks.innerHTML = `
+                    <span style="font-weight: 600; color: #64748b; font-size: 0.88rem;">Halo, Admin Klinik</span>
+                    <a href="index.html">Pemanggilan</a>
+                    <a href="dokter.html" class="active">Jadwal Dokter</a>
+                    <a href="laporan.html">Rekap Laporan</a>
+                    <a href="pantau.html" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> Layar Monitor</a>
+                    <a href="#" onclick="logoutUser()" class="btn-daftar-online" style="background: var(--danger, #e11d48);">Keluar</a>
+                `;
+            } else {
+                navLinks.innerHTML = `
+                    <a href="pendaftaran.html">Ambil Antrean</a>
+                    <a href="dokter.html" class="active">Daftar Dokter</a>
+                    <a href="pantau.html">Monitor Antrean</a>
+                    <a href="profil.html">Profil Saya</a>
+                    <a href="#" onclick="logoutUser()" class="btn-daftar-online" style="background: var(--danger);">Keluar</a>
+                `;
+            }
+
+            // 2. Fetch Data Dokter dari Database Backend API
+            const container = document.getElementById('doctorContainer');
+            try {
+                const response = await fetch(`${API_BASE_URL}/doctors/schedules`);
+                const result = await response.json();
+
+                if (response.ok && result.success && result.data.length > 0) {
+                    container.innerHTML = result.data.map(doc => `
+                        <div class="card" style="margin-bottom: 0;">
+                            <div style="text-align: center; margin-bottom: 1rem;">
+                                <div style="width: 70px; height: 70px; border-radius: 50%; background: #e0f2fe; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 0.8rem auto;">
+                                    <i class="fa-solid fa-user-doctor"></i>
+                                </div>
+                                <h3 style="color: var(--primary-dark); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.2rem;">${doc.doctor_name}</h3>
+                                <span style="background: #f1f5f9; color: var(--primary); font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 12px;">${doc.specialization}</span>
+                            </div>
+                            
+                            <div style="background: #f8fafc; padding: 0.8rem; border-radius: 10px; font-size: 0.85rem; color: #475569; margin-bottom: 1rem;">
+                                <div style="margin-bottom: 4px;"><i class="fa-regular fa-calendar-check" style="color: var(--primary);"></i> <strong>Hari:</strong> ${doc.day_of_week}</div>
+                                <div><i class="fa-regular fa-clock" style="color: var(--primary);"></i> <strong>Jam:</strong> ${doc.start_time.substring(0,5)} - ${doc.end_time.substring(0,5)} WIB</div>
+                            </div>
+
+                            ${isAdmin ? `
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-block" style="background: #f1f5f9; color: #334155; font-size: 0.85rem;" disabled>
+                                        <i class="fa-solid fa-user-check"></i> Aktif (Quota: ${doc.max_quota})
+                                    </button>
+                                </div>
+                            ` : `
+                                <a href="pendaftaran.html?schedule_id=${doc.schedule_id}" class="btn btn-primary btn-block" style="font-size: 0.85rem;">
+                                    Ambil Antrean
+                                </a>
+                            `}
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `<p style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #94a3b8;">Belum ada jadwal dokter yang terdaftar di database.</p>`;
+                }
+            } catch (err) {
+                console.error('Error fetching schedules:', err);
+                container.innerHTML = `<p style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #ef4444;">Gagal memuat jadwal dokter dari server.</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

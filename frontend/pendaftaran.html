@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Pasien - Antreanku</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-info">
+            <span><i class="fa-solid fa-clinic-medical"></i> Puskesmas / Klinik Utama Antreanku</span>
+            <span><i class="fa-solid fa-clock"></i> Jam Pelayanan: 08.00 - 14.00 WIB</span>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar-rs">
+        <a href="index.html" class="brand-rs">
+            <div class="brand-logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+            <div>
+                <div class="brand-text-title">Antreanku</div>
+                <div class="brand-text-sub">Pendaftaran Pasien</div>
+            </div>
+        </a>
+
+        <div class="nav-rs-links">
+            <a href="pendaftaran.html" class="active">Ambil Antrean</a>
+            <a href="dokter.html"><i class="fa-solid fa-user-doctor"></i> Daftar Dokter</a>
+            <a href="pantau.html">Monitor Antrean</a>
+            <a href="profil.html">Profil Saya</a>
+            <a href="#" onclick="logoutUser()" class="btn-daftar-online" style="background: var(--danger);">Keluar</a>
+        </div>
+    </nav>
+
+    <!-- Banner -->
+    <div class="hero-banner">
+        <div class="container">
+            <small style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-weight: 600;">LAYANAN ANTREAN PASIEN</small>
+            <h1 style="margin-top: 10px;">Ambil Nomor Antrean Poli</h1>
+            <p style="opacity: 0.9; margin-top: 4px;">Silakan pilih jadwal dokter dan poli tujuan Anda.</p>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="container" style="margin-top: -2.5rem; margin-bottom: 3rem;">
+        <div class="card" style="max-width: 650px; margin: 0 auto;">
+            <h3 style="color: var(--primary-dark); font-size: 1.2rem; margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-user-plus"></i> Form Pendaftaran Antrean Pasien
+            </h3>
+
+            <form id="formRegisterQueue">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Pilih Jadwal Dokter / Poli</label>
+                    <select id="scheduleSelect" class="form-control" required style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <option value="">-- Memuat daftar dokter dari database... --</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="padding: 0.9rem; font-size: 1rem;">
+                    <i class="fa-solid fa-ticket"></i> Ambil Nomor Antrean
+                </button>
+            </form>
+
+            <div id="queueResult" style="display: none; margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; text-align: center;">
+                <h4 style="color: #166534; margin-bottom: 0.5rem;">Nomor Antrean Anda:</h4>
+                <div id="queueNumberDisplay" style="font-size: 3rem; font-weight: 800; color: #15803d; margin: 0.5rem 0;">-</div>
+                <p id="queueDetailDisplay" style="color: #166534; font-size: 0.9rem;"></p>
+                <a href="pantau.html" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Lihat di Monitor Antrean</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const select = document.getElementById('scheduleSelect');
+            const urlParams = new URLSearchParams(window.location.search);
+            const selectedScheduleId = urlParams.get('schedule_id');
+
+            // 1. Fetch data jadwal dokter dari backend
+            try {
+                const res = await fetch(`${API_BASE_URL}/doctors/schedules`);
+                const data = await res.json();
+
+                if (res.ok && data.success && data.data.length > 0) {
+                    select.innerHTML = '<option value="">-- Pilih Dokter & Poli --</option>' + 
+                    data.data.map(s => {
+                        const startTime = s.start_time ? s.start_time.substring(0, 5) : '08:00';
+                        const endTime = s.end_time ? s.end_time.substring(0, 5) : '14:00';
+                        return `<option value="${s.schedule_id}" ${selectedScheduleId == s.schedule_id ? 'selected' : ''}>${s.specialization} - ${s.doctor_name} (${s.day_of_week}, ${startTime} - ${endTime} WIB)</option>`;
+                    }).join('');
+                } else {
+                    select.innerHTML = '<option value="">Belum ada jadwal dokter tersedia</option>';
+                }
+            } catch (err) {
+                console.error(err);
+                select.innerHTML = '<option value="">Gagal memuat daftar dokter dari server</option>';
+            }
+        });
+
+        // 2. Submit Ambil Antrean ke Backend API (/antrean/register)
+        document.getElementById('formRegisterQueue').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const scheduleId = document.getElementById('scheduleSelect').value;
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const activePatientId = currentUser.patient_id || currentUser.user_id || currentUser.id || 1;
+
+            if (!scheduleId) return alert('Silakan pilih jadwal dokter!');
+
+            const payload = {
+                patient_id: parseInt(activePatientId),
+                user_id: parseInt(activePatientId),
+                schedule_id: parseInt(scheduleId)
+            };
+
+            try {
+                // Menggunakan endpoint /antrean/register (sesuai backend antreanRoutes.js)
+                const res = await fetch(`${API_BASE_URL}/antrean/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    document.getElementById('queueNumberDisplay').innerText = data.data.queue_number;
+                    document.getElementById('queueDetailDisplay').innerText = `Poli: ${data.data.specialization} | Dokter: ${data.data.doctor_name}`;
+                    document.getElementById('queueResult').style.display = 'block';
+                    alert(`✅ Berhasil mengambil nomor antrean: ${data.data.queue_number}`);
+                } else {
+                    alert('⚠️ Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('❌ Gagal terhubung ke server backend!');
+            }
+        });
+    </script>
+</body>
+</html>

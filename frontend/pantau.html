@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Antrean - Antreanku</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body style="background: #f8fafc;">
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-info">
+            <span><i class="fa-solid fa-clinic-medical"></i> Puskesmas / Klinik Utama Antreanku</span>
+            <span><i class="fa-solid fa-clock"></i> Jam Pelayanan: 08.00 - 14.00 WIB</span>
+        </div>
+        <div id="liveClock" style="font-weight: 700; color: #fff;"></div>
+    </div>
+
+    <!-- Navbar Monitor Public -->
+    <nav class="navbar-rs">
+        <a href="index.html" class="brand-rs">
+            <div class="brand-logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+            <div>
+                <div class="brand-text-title">Antreanku</div>
+                <div class="brand-text-sub">Layar Display Monitor Public</div>
+            </div>
+        </a>
+
+        <div class="nav-rs-links">
+            <a href="pendaftaran.html" class="btn-daftar-online"><i class="fa-solid fa-arrow-left"></i> Kembali ke Pendaftaran</a>
+        </div>
+    </nav>
+
+    <!-- Banner Display -->
+    <div class="hero-banner" style="padding: 1.5rem 0; text-align: center;">
+        <div class="container">
+            <small style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-weight: 600;">LAYAR DISPLAY RUANG TUNGGU</small>
+            <h1 style="margin-top: 6px; font-size: 1.8rem;">PANGGILAN ANTREAN PASIEN</h1>
+        </div>
+    </div>
+
+    <!-- Container Utama Grid Multi Poli -->
+    <div class="container" style="margin-top: -1.5rem; margin-bottom: 3rem;">
+        
+        <!-- Grid Card Panggilan per Poli -->
+        <div id="monitorGridContainer" class="monitor-grid">
+            <div class="card" style="text-align: center; grid-column: 1 / -1;">
+                <p style="color: #64748b;">Memuat data antrean monitor...</p>
+            </div>
+        </div>
+
+        <!-- Tabel Ringkasan Antrean Menunggu -->
+        <div class="card" style="margin-top: 2rem;">
+            <h3 class="card-title"><i class="fa-solid fa-list-ol" style="color: var(--primary, #0d9488);"></i> Antrean Pasien Menunggu</h3>
+            <div class="table-responsive">
+                <table class="table-custom" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f1f5f9; text-align: left;">
+                            <th style="padding: 10px;">No Tiket</th>
+                            <th style="padding: 10px;">Nama Pasien</th>
+                            <th style="padding: 10px;">Poli / Dokter</th>
+                            <th style="padding: 10px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="waitingTableBody">
+                        <tr><td colspan="4" style="text-align:center; padding: 15px; color: #94a3b8;">Memuat data antrean...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script Monitoring Real-Time -->
+    <script src="js/config.js"></script>
+    <script>
+        // Realtime Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = now.toLocaleTimeString('id-ID') + ' WIB';
+        }, 1000);
+
+        async function fetchMonitorData() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/antrean/today`);
+                const result = await res.json();
+
+                if (res.ok && result.success) {
+                    renderMonitorCards(result.data);
+                    renderWaitingTable(result.data);
+                }
+            } catch (err) {
+                console.error("Gagal memuat data monitor:", err);
+            }
+        }
+
+        function renderMonitorCards(data) {
+            const container = document.getElementById('monitorGridContainer');
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div class="card" style="text-align: center; grid-column: 1 / -1; padding: 2rem;">
+                        <h3 style="color: #64748b;">Belum Ada Antrean Masuk Hari Ini</h3>
+                    </div>
+                `;
+                return;
+            }
+
+            // Kelompokkan data antrean berdasarkan Poli/Dokter
+            const polyMap = {};
+            data.forEach(item => {
+                const key = item.specialization || 'Poli Umum';
+                if (!polyMap[key]) {
+                    polyMap[key] = {
+                        polyName: key,
+                        doctorName: item.doctor_name || 'Dokter',
+                        callingNum: '---',
+                        patientName: 'Belum Ada Antrean Dipanggil'
+                    };
+                }
+                // Jika status calling, update nomor antrean yang dipanggil
+                if (item.status === 'calling') {
+                    polyMap[key].callingNum = item.queue_number;
+                    polyMap[key].patientName = item.patient_name || 'Pasien';
+                }
+            });
+
+            container.innerHTML = Object.values(polyMap).map(poly => `
+                <div class="card" style="text-align: center; border-top: 4px solid var(--primary, #0d9488);">
+                    <h3 style="color: #334155; font-size: 1.1rem; margin-bottom: 0.5rem;">${poly.polyName.toUpperCase()}</h3>
+                    <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 1rem;">${poly.doctorName}</p>
+                    
+                    <div style="background: #e6fffa; border: 2px dashed #0d9488; border-radius: 12px; padding: 1.5rem; margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: #0d9488; text-transform: uppercase;">Nomor Antrean Dipanggil</div>
+                        <div style="font-size: 3.2rem; font-weight: 800; color: #0f766e; margin: 0.3rem 0;">${poly.callingNum}</div>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #134e4a;">${poly.patientName}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderWaitingTable(data) {
+            const tbody = document.getElementById('waitingTableBody');
+            const waitingList = data.filter(q => q.status === 'waiting');
+
+            if (waitingList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 15px; color: #94a3b8;">Tidak ada antrean yang sedang menunggu.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = waitingList.map(q => `
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 8px 10px;"><strong>${q.queue_number}</strong></td>
+                    <td style="padding: 8px 10px;">${q.patient_name || 'Pasien UMUM'}</td>
+                    <td style="padding: 8px 10px;">${q.specialization} (${q.doctor_name})</td>
+                    <td style="padding: 8px 10px;"><span style="background: #d97706; color:#fff; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">MENUNGGU</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Auto Refresh Layar Monitor Setiap 3 Detik
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMonitorData();
+            setInterval(fetchMonitorData, 3000);
+        });
+    </script>
+</body>
+</html>

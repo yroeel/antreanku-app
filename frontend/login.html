@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Klinik Antreanku</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background-color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 0;
+        }
+
+        .login-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .login-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="top-bar-info">
+            <span><i class="fa-solid fa-clinic-medical"></i> Puskesmas / Klinik Utama Antreanku</span>
+            <span><i class="fa-solid fa-clock"></i> Jam Pelayanan: 08.00 - 14.00 WIB</span>
+        </div>
+    </div>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="brand-logo-icon" style="margin: 0 auto 1.25rem auto;">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+
+            <h2 style="color: var(--primary-dark); font-weight: 800; font-size: 1.4rem;">Selamat Datang</h2>
+            <p style="color: #64748b; font-size: 0.88rem; margin-bottom: 1.5rem;">Masuk ke akun Antreanku Anda</p>
+
+            <form id="loginForm">
+                <div class="form-group" style="text-align: left;">
+                    <label for="email">Email / Username</label>
+                    <input type="email" id="email" class="form-control" placeholder="pasien@antreanku.com" required>
+                </div>
+
+                <div class="form-group" style="text-align: left;">
+                    <label for="password">Kata Sandi</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Masuk Akun
+                </button>
+            </form>
+
+            <!-- Link Pendaftaran Akun Pasien Baru -->
+            <p style="margin-top: 1.25rem; font-size: 0.85rem; color: #64748b;">
+                Belum punya akun? <a href="register.html" style="color: var(--primary-dark); font-weight: 700; text-decoration: none;">Daftar Akun Baru</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

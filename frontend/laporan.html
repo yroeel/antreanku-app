@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan - Antreanku</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin">
+<nav class="navbar-rs is-admin">
+  <a href="index.html" class="brand-rs"><div class="brand-logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+    <div><div class="brand-text-title">Antreanku Admin</div><div class="brand-text-sub">Statistik & analisis data</div></div></a>
+  <div class="nav-rs-links">
+    <span class="muted" id="adminName" style="font-weight:600;font-size:.85rem;padding-right:.5rem">Halo, Admin</span>
+    <a href="index.html">Pemanggilan</a>
+    <a href="laporan.html" class="active">Rekap laporan</a>
+    <a href="pantau.html" target="_blank">Layar monitor <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:.7rem"></i></a>
+    <a href="#" onclick="logoutUser()" class="btn-daftar-online">Keluar</a>
+  </div>
+</nav>
+
+<main class="container wide page">
+  <div class="card">
+    <h2 class="card-title"><i class="fa-solid fa-file-invoice"></i> Rekapitulasi pelayanan pasien</h2>
+    <div class="grid-stats" style="margin-bottom:0">
+      <div class="stat-box">Total kunjungan<div class="stat-number" id="reportTotal">0</div></div>
+      <div class="stat-box">Terselesaikan<div class="stat-number" id="reportCompleted" style="color:var(--success)">0</div></div>
+      <div class="stat-box">Dibatalkan / dilewati<div class="stat-number" id="reportSkipped" style="color:var(--danger)">0</div></div>
+    </div>
+  </div>
+</main>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/laporan.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor Antrean - Antreanku</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="top-bar"><div class="top-bar-info">
+  <span><i class="fa-solid fa-clinic-medical"></i> Puskesmas / Klinik Utama Antreanku</span>
+  <span><i class="fa-solid fa-clock"></i> Jam pelayanan 08.00 - 14.00 WIB</span>
+</div></div>
+<nav class="navbar-rs">
+  <a href="pendaftaran.html" class="brand-rs"><div class="brand-logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+    <div><div class="brand-text-title">Antreanku</div><div class="brand-text-sub">Monitor layar antrean</div></div></a>
+  <div class="nav-rs-links"><a href="pendaftaran.html">Ambil Antrean</a><a href="pantau.html" class="active">Monitor Antrean</a><a href="profil.html">Profil Saya</a><span class="clock" id="realtimeClock">08:00 WIB</span><a href="#" onclick="logoutUser()" class="btn-daftar-online">Keluar</a></div>
+</nav>
+
+<header class="hero-banner"><div class="container center">
+  <h1>Monitor antrean real-time</h1>
+  <p>Pantau nomor yang sedang dipanggil dari perangkat Anda.</p>
+</div></header>
+
+<main class="container pull-up">
+  <div class="card center">
+    <h2 class="card-title" style="justify-content:center"><span class="live">Sedang dipanggil</span></h2>
+    <div class="ticket-display">
+      <p>Poli Umum - dr. Andi Wijaya</p>
+      <div class="ticket-number" id="currentCalledNumber">A-000</div>
+      <h3 id="currentPatientName" style="color:var(--primary-dark)">Menunggu panggilan...</h3>
+    </div>
+  </div>
+  <div class="grid-stats">
+    <div class="stat-box">Total pendaftar<div class="stat-number" id="totalQueue">0</div></div>
+    <div class="stat-box">Menunggu<div class="stat-number" id="waitingQueue" style="color:var(--warning)">0</div></div>
+    <div class="stat-box">Selesai<div class="stat-number" id="completedQueue" style="color:var(--success)">0</div></div>
+  </div>
+</main>
+<div class="bottom-nav">
+  <a href="pendaftaran.html" class="nav-item"><i class="fa-solid fa-house" style="font-size:1.2rem"></i><span>Beranda</span></a>
+  <a href="pantau.html" class="nav-item active"><i class="fa-solid fa-desktop" style="font-size:1.2rem"></i><span>Monitor</span></a>
+  <a href="pendaftaran.html" class="nav-item" aria-label="Ambil antrean"><div class="nav-center-btn"><i class="fa-solid fa-plus" style="font-size:1.3rem"></i></div></a>
+  <a href="cetak-tiket.html" class="nav-item"><i class="fa-solid fa-ticket" style="font-size:1.2rem"></i><span>Tiket</span></a>
+  <a href="profil.html" class="nav-item"><i class="fa-solid fa-user" style="font-size:1.2rem"></i><span>Profil</span></a>
+</div>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/pantau.js"></script>
+<script>
+function updateClock(){const n=new Date(),el=document.getElementById('realtimeClock');
+if(el)el.innerText=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' WIB';}
+setInterval(updateClock,1000);updateClock();
+</script>
+</body>
+</html>

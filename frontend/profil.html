@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Saya - Antreanku</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Top Bar Kontak -->
+    <div class="top-bar">
+        <div class="top-bar-info">
+            <span><i class="fa-solid fa-clinic-medical"></i> Puskesmas / Klinik Utama Antreanku</span>
+            <span><i class="fa-solid fa-clock"></i> Jam Pelayanan: 08.00 - 14.00 WIB</span>
+        </div>
+    </div>
+
+    <!-- Header Navbar Persis Gambar Pertama -->
+    <nav class="navbar-rs">
+        <a href="pendaftaran.html" class="brand-rs">
+            <div class="brand-logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+            <div>
+                <div class="brand-text-title">Antreanku</div>
+                <div class="brand-text-sub">Profil Akun Pasien</div>
+            </div>
+        </a>
+
+        <div class="nav-rs-links">
+            <a href="pendaftaran.html">Ambil Antrean</a>
+            <a href="dokter.html">Daftar Dokter</a>
+            <a href="pantau.html">Monitor Antrean</a>
+            <a href="profil.html" class="active">Profil Saya</a>
+            <span style="color: var(--primary); font-weight: bold;" id="realtimeClock">08:00 WIB</span>
+            <a href="#" onclick="logoutUser()" class="btn-daftar-online" style="background: var(--danger);">Keluar</a>
+        </div>
+    </nav>
+
+    <!-- Main Content Profil -->
+    <div class="container" style="max-width: 600px; margin-top: 2rem; margin-bottom: 3rem;">
+        <div class="card" style="text-align: center;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary-soft); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: var(--primary-dark); border: 3px solid var(--primary);">
+                <i class="fa-solid fa-user-injured"></i>
+            </div>
+            <h2 id="profileUserName" style="color: var(--primary-dark); font-weight: 800;">Pasien</h2>
+            <p id="profileUserEmail" style="color: #64748b; font-size: 0.9rem;">pasien@antreanku.com</p>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title"><i class="fa-solid fa-gear" style="color: var(--primary);"></i> Pengaturan Akun</h3>
+            
+            <a href="pendaftaran.html" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; text-decoration: none; color: #334155; border-bottom: 1px solid #f1f5f9;">
+                <div><i class="fa-solid fa-ticket" style="color: var(--primary); margin-right: 0.75rem;"></i> Ambil Tiket Antrean Poli</div>
+                <i class="fa-solid fa-chevron-right" style="color: #cbd5e1;"></i>
+            </a>
+
+            <div onclick="logoutUser()" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; color: var(--danger); cursor: pointer;">
+                <div><i class="fa-solid fa-right-from-bracket" style="margin-right: 0.75rem;"></i> Keluar dari Akun</div>
+                <i class="fa-solid fa-chevron-right" style="color: #fca5a5;"></i>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/profil.js"></script>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const clockEl = document.getElementById('realtimeClock');
+            if (clockEl) clockEl.innerText = `${hours}:${minutes} WIB`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>

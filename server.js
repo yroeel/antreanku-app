@@ -11,11 +11,18 @@ const doctorRoutes = require('./routes/doctorRoutes');
 
 const app = express();
 
-// Konfigurasi CORS agar frontend online (Vercel/Netlify) bisa mengakses API
+// Konfigurasi CORS
 app.use(cors());
 app.use(express.json());
 
-// Rute Pengujian Server (Health Check untuk Cloud Hosting)
+// Rute Pengujian Server (Health Check)
+app.get('/api', (req, res) => {
+    res.json({ 
+        status: 'Online',
+        message: 'Selamat datang di API Antreanku!' 
+    });
+});
+
 app.get('/', (req, res) => {
     res.json({ 
         status: 'Online',
@@ -24,17 +31,20 @@ app.get('/', (req, res) => {
 });
 
 // Mounting Rute API
-app.use('/api/antrean', antreanRoutes); // Jalur utama untuk frontend
-app.use('/api/queues', antreanRoutes);  // Alias pendukung
+app.use('/api/antrean', antreanRoutes);
+app.use('/api/queues', antreanRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/reports', laporanRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/doctors', doctorRoutes);
 
-// Port Dinamis dari Provider Hosting (Fallback ke 5000 jika dijalankan lokal)
-const PORT = process.env.PORT || 5000;
+// Jalankan app.listen HANYA jika dijalankan secara lokal (Bukan di lingkungan Vercel)
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`✅ Server Antreanku berjalan di port ${PORT}`);
+    });
+}
 
-// Binding host ke '0.0.0.0' wajib untuk server cloud seperti Render
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Berhasil Terhubung ke Database & Server Antreanku berjalan di port ${PORT}`);
-});
+// Wajib untuk Vercel Serverless Function:
+module.exports = app;

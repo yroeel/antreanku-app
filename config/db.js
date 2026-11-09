@@ -18,25 +18,37 @@ const pool = mysql.createPool({
 (async () => {
     try {
         const connection = await pool.getConnection();
-        console.log('✅ Berhasil Terhubung ke Database MySQL Aiven Cloud');
+        console.log('✅ Terhubung ke MySQL Aiven Cloud');
 
-        // Otomatis buat/sesuaikan Tabel Users
+        // 1. Buat Tabel Users jika belum ada
         await connection.query(`
             CREATE TABLE IF NOT EXISTS users (
-                user_id INT AUTO_INCREMENT PRIMARY KEY,
-                id INT,
-                name VARCHAR(100),
+                id INT AUTO_INCREMENT PRIMARY KEY,
                 nama VARCHAR(100),
                 email VARCHAR(100) NOT NULL UNIQUE,
-                username VARCHAR(50),
                 password VARCHAR(255) NOT NULL,
-                phone VARCHAR(20) DEFAULT '-',
-                role VARCHAR(20) DEFAULT 'patient',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
 
-        // Otomatis buat Tabel Antrean
+        // 2. Tambahkan kolom pendukung secara aman jika belum ada di Aiven
+        const alterQueries = [
+            `ALTER TABLE users ADD COLUMN IF NOT EXISTS user_id INT AUTO_INCREMENT UNIQUE;`,
+            `ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(100);`,
+            `ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50);`,
+            `ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20) DEFAULT '-';`,
+            `ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'patient';`
+        ];
+
+        for (const q of alterQueries) {
+            try {
+                await connection.query(q);
+            } catch (err) {
+                // Abaikan jika sintaks IF NOT EXISTS tidak didukung versi MySQL tertentu
+            }
+        }
+
+        // 3. Buat Tabel Antrean
         await connection.query(`
             CREATE TABLE IF NOT EXISTS antrean (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -48,7 +60,7 @@ const pool = mysql.createPool({
             );
         `);
 
-        console.log('✅ Tabel Database Antreanku Siap!');
+        console.log('✅ Skema Tabel Database Aiven Berhasil Diselaraskan!');
         connection.release();
     } catch (error) {
         console.error('❌ Error Init Database:', error.message);

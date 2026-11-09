@@ -5,8 +5,8 @@ const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'antreanku_db',
-    port: process.env.DB_PORT || 3306,
+    database: process.env.DB_NAME || 'defaultdb',
+    port: process.env.DB_PORT || 16480,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
@@ -18,22 +18,25 @@ const pool = mysql.createPool({
 (async () => {
     try {
         const connection = await pool.getConnection();
-        console.log('✅ Berhasil Terhubung ke Database MySQL');
+        console.log('✅ Berhasil Terhubung ke Database MySQL Aiven Cloud');
 
-        // 1. Buat Tabel Users
+        // Otomatis buat/sesuaikan Tabel Users
         await connection.query(`
             CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nama VARCHAR(100) NOT NULL,
+                user_id INT AUTO_INCREMENT PRIMARY KEY,
+                id INT,
+                name VARCHAR(100),
+                nama VARCHAR(100),
                 email VARCHAR(100) NOT NULL UNIQUE,
-                username VARCHAR(50) UNIQUE,
+                username VARCHAR(50),
                 password VARCHAR(255) NOT NULL,
-                role ENUM('admin', 'pasien', 'petugas') DEFAULT 'pasien',
+                phone VARCHAR(20) DEFAULT '-',
+                role VARCHAR(20) DEFAULT 'patient',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
 
-        // 2. Buat Tabel Antrean
+        // Otomatis buat Tabel Antrean
         await connection.query(`
             CREATE TABLE IF NOT EXISTS antrean (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -45,18 +48,7 @@ const pool = mysql.createPool({
             );
         `);
 
-        // 3. Otomatis Sisipkan Akun Admin jika belum ada
-        const [rows] = await connection.query(`SELECT * FROM users WHERE email = 'admin@antreanku.com' OR username = 'admin'`);
-        if (rows.length === 0) {
-            // Password plaintext/mock admin123 (atau gunakan hash bcrypt jika backend kamu menggunakan bcrypt)
-            await connection.query(`
-                INSERT INTO users (nama, email, username, password, role) 
-                VALUES ('Admin Antreanku', 'admin@antreanku.com', 'admin', 'admin123', 'admin')
-            `);
-            console.log('✅ Akun Admin Default Berhasil Dibuat!');
-        }
-
-        console.log('✅ Tabel & Data Siap Digunakan!');
+        console.log('✅ Tabel Database Antreanku Siap!');
         connection.release();
     } catch (error) {
         console.error('❌ Error Init Database:', error.message);
